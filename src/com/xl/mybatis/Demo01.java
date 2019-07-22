@@ -5,4 +5,7 @@ package com.xl.mybatis;
  * @date 2019/6/18 16:39
  */
 public class Demo01 {
+    public static void main(String[] args) {
+        System.out.println("你好");
+    }
 }
