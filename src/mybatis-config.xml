@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-config.dtd">
+
+<configuration>
+	
+	<properties resource="mysqlsource.properties"/>
+
+	<settings>
+		<!-- 配置Log4j2日志 -->
+		<setting name="logImpl" value="LOG4J2"/>
+		
+		<!-- 将数据表中带下划线的命名的列转成JAVA驼峰命名的方式
+			假如数据表中有一个列名为dept_no,那么就Mybatis可以将它转换成deptNo字样，
+			主要是为对应POJO中的属性字段
+			默认为false
+		 -->
+		<setting name="mapUnderscoreToCamelCase" value="true"/>
+		
+		<!-- lazyLoadingEnabled：true使用延迟加载，false禁用延迟加载。默认为true
+			 aggressiveLazyLoading：true启用时，当延迟加载开启时访问对象中一个懒对象属性时，将完全加载这个对象的所有懒对象属性。
+			 						false，当延迟加载时，按需加载对象属性（即访问对象中一个懒对象属性，不会加载对象中其他的懒对象属性）。
+			 						默认为true -->
+		<!--开启延迟加载-->
+        <setting name="lazyLoadingEnabled" value="true"/>
+        <!--关闭积极加载-->
+        <setting name="aggressiveLazyLoading" value="false"/>
+        
+        <!-- 设置全局二级缓存 默认为true开启 如果设为false 禁用 那么后面局部设置为开启则无效 -->
+		<setting name="cacheEnabled" value="true"/> 
+        <!-- 
+                设置全局主键自动增长
+		允许JDBC支持自动生成主键，需要驱动兼容（数据库支持自动增长功能）
+		如果设置为true则这个设置强制使用自动生成主键 
+		-->
+		<!-- <setting name="useGeneratedKeys" value="true" />  -->
+		
+		<!-- 设置连接数据库超时时间为30秒 -->
+       <setting name="defaultStatementTimeout" value="30"/>
+       
+       <!-- 设置默认数据结果集装载20000条 -->
+       <!-- <setting name="defaultFetchSize" value="20000"/> -->
+		
+		<!-- 非延迟加载触发包含哪些方法 默认为equals，clone，hashCode，toString
+			实际指的就是遇到value后所填写的方法时就会立即在session内再去取数据，如果没有则查询数据库
+			value默认值equals，clone，hashCode，toString就是代表遇到这些方法后就会立即加载数据值
+		-->
+		<setting name="lazyLoadTriggerMethods" value="equals,clone,hashCode,toString"/>
+		
+		<!-- MyBatis 利用本地缓存机制（Local Cache）防止循环引用（circular references）和加速重复嵌套查询。
+	  		 默认值为 SESSION，这种情况下会缓存一个会话中执行的所有查询。
+	   		若设置值为 STATEMENT，本地会话仅用在语句执行上，对相同 SqlSession 的不同调用将不会共享数据。  -->
+	  <setting name="localCacheScope" value="SESSION"/>
+	
+	<!-- 一级缓存: 基于PerpetualCache 的 HashMap本地缓存，其存储作用域为 Session，当 Session flush 或 close 之后，
+					该Session中的所有 Cache 就将清空。默认是开启，范围在一个SqlSession生命周期内。
+					一个SqlSession生命周期内，任何insert、delete、update操作都会自动刷新一级缓存
+	  	二级缓存与一级缓存其机制相同，默认也是采用 PerpetualCache，HashMap存储，不同在于其存储作用域为 Mapper(Namespace)，
+					并且可自定义第三方存储源，如 Ehcache框架等。对于缓存数据更新机制，当某一个作用域(一级缓存Session/二级缓存Namespaces)的进行了 C/U/D 
+					操作后，默认该作用域下所有 select 中的缓存将被clear。 
+				<select> 标签中设置flushCache="true" 刷新缓存操作的是一级缓存-->
+	<!-- 该配置影响的所有映射器中配置的缓存的全局开关。默认值true 设置全局二级缓存，如果设置为false关闭，那么在后面局部配置中就无法打开-->
+	<!-- 二级缓存配置需要在 Mapper XML中进行配置 是与Mapper XML中绑定在一起的 
+		 就是<mapper namespace="com.test.mybatis.dao.StudentMapper">的命名空间
+		 在此文件中配置二级缓存，前提是全局二级缓存开启
+	-->
+	  <setting name="cacheEnabled" value="true"/>
+	
+	</settings>
+	
+	<typeAliases>
+		<!-- 配置pojo包的别名，以后调用pojo中的类时就不需要用类的全称。
+			如Dept类，配置这个包的别名，在DeptMapper.xml中resultMap的属性值就只写Dept就可以了
+			，实际上跟JAVA中import关键字有点相似
+		 -->
+		<package name="com.test.mybatis.pojo"/>
+	</typeAliases>
+	
+	<!-- environments配置中可以存放多个 environment
+		environments 的default="environment id" 通过配置environments的default属性就能选择对应的environment了
+		例如default="mysql_env"就是通知系统默认环境id=mysql_env的environment配置
+	 -->
+	<environments default="mysql_env">
+	
+		<environment id="mysql_env">
+			
+			<!--1、 type = "JDBC",则Mybatis会创建一个JdbcTransactionFactory 
+			    2、type="MANAGED"，则Mybatis会创建一个MangedTransactionFactory 
+				种机制mybatis自身不会去实现事务管理，而是让程序的容器（JBOSS,WebLogic）来实现对事务的管理 -->
+			<transactionManager type="JDBC"/>
+			
+			<!-- dataSource type值为：
+				UNPOOLED：不使用连接池的数据源
+				POOLED：使用连接池的数据源
+				JNDI：使用JNDI实现的数据源 -->
+			<dataSource type="POOLED">
+				<property name="driver" value="${driverClass}"/>
+				<property name="url" value="${connectionURL}"/>
+				<property name="username" value="${userName}"/>
+				<property name="password" value="${password}"/>
+			</dataSource>
+		</environment>
+		
+		<environment id="mysql_c3p0datasource_properties">
+			<transactionManager type="JDBC"/>
+			<dataSource type="com.mybatis.session.factory.C3P0DataSource"/>
+		</environment>
+		
+		<environment id="mysql_c3p0datasource">
+			<transactionManager type="JDBC"/>
+			<dataSource type="com.mybatis.session.factory.C3P0DataSource">
+				<property name="driverClass" value="com.mysql.cj.jdbc.Driver"/>
+				<property name="jdbcUrl" value="jdbc:mysql://localhost:3306/test?serverTimezone=Asia/Shanghai"/> 
+				<property name="user" value="root"/>
+				<property name="password" value="root"/>
+				<property name="initialPoolSize" value="20"/>
+				<property name="maxPoolSize" value="200"/>
+				<property name="acquireIncrement" value="20"/>
+				<property name="maxIdleTime" value="60"/>
+				<property name="numHelperThreads" value="20"/>
+			</dataSource>
+		</environment>
+		
+	</environments>
+		
+	<mappers>
+		<mapper resource="com/mybatis/pojo/TeacherVO.xml"/>
+	</mappers>
+	
+</configuration>
